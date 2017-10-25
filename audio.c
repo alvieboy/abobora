@@ -7,14 +7,19 @@
 static TIM_HandleTypeDef    TimHandle;
 
 extern void Error_Handler();
-static int bAudioRunning = 0;
+static volatile int bAudioRunning = 0;
 
 void audio_start()
 {
     bAudioRunning = 1;
 }
 
-void audio_setup()
+void audio_stop()
+{
+    bAudioRunning = 0;
+}
+
+void audio_init()
 {
 //    TIM_MasterConfigTypeDef master_timer_config;
 

@@ -5,12 +5,8 @@
 #include <stm32f1xx_hal_rcc.h>
 #include <stm32f1xx_hal_spi.h>
 #include <string.h>
-
-/*
- PA5 SPI_SCK
- PA6 SPI_MISO
- PA7 SPI_MOSI
-*/
+#include "audio.h"
+#include "led.h"
 
 void Error_Handler();
 
@@ -138,25 +134,10 @@ int main()
 
     init_gpio();
     spi_init();
-    int i;
-
-    for (i=0;i<1024/64;i++) {
-        spi_tx32(0x00000000);
-    }
-    // Clear
-    for (i=0;i<1024;i++) {
-        spi_tx32(0xFF00000);
-    }
-    for (i=0;i<1024/64;i++) {
-        spi_tx32(0x00000000);
-    }
-
+    audio_init();
+    led_init();
     while (1) {
-        spi_tx32(0xFF0101FE);
-        spi_tx32(0xFF01FE01);
-        spi_tx32(0xFFFE0101);
-        spi_tx32(0xFF808080);
-        spi_tx32(0x00000000);
-        HAL_Delay(2);
+        led_txchunk();
     }
+
 }
