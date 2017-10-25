@@ -94,6 +94,7 @@ ASFLAGS=-O2 -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
 SRC=main.c \
     audio.c \
     led.c \
+    distance.c \
     system_stm32f1xx.c	\
     stm32f1xx_it.c 	
 
