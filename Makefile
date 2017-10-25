@@ -92,6 +92,8 @@ CFLAGS=-O2 -Wall -mcpu=cortex-m3 -mthumb -mthumb-interwork -I$(HALINCPATH) -I. \
 ASFLAGS=-O2 -mcpu=cortex-m3 -mthumb -x assembler-with-cpp
 
 SRC=main.c \
+    audio.c \
+    led.c \
     system_stm32f1xx.c	\
     stm32f1xx_it.c 	
 
