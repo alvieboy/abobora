@@ -71,7 +71,7 @@ void audio_interrupt()
     }
 }
 
-void TIM2_IRQHandler()
+int get_audio_sample(uint8_t *val)
 {
-    audio_interrupt();
+    return -1;
 }

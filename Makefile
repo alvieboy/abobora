@@ -95,6 +95,10 @@ SRC=main.c \
     audio.c \
     led.c \
     distance.c \
+    usbd_cdc_if.c  \
+    usbd_conf.c  \
+    usbd_desc.c \
+    sbrk.c \
     system_stm32f1xx.c	\
     stm32f1xx_it.c 	
 
@@ -107,14 +111,14 @@ OBJS=$(SRC:.c=.o) $(AOBJ)
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
-$(TARGET).elf: $(OBJS) $(HOBJ)
+$(TARGET).elf: $(OBJS) $(HOBJ) $(USBOBJ) $(USBCDCOBJ)
 	$(CC) -o $@ $+ -Tstm32f103.ld -nostartfiles -Wl,--gc-sections -static -flto
 
 $(AOBJ) : %.o : %.s
 	$(CC) -c $(ASFLAGS) $< -o $@
 
 clean:
-	rm -f $(OBJS) $(HOBJ) $(TARGET).elf
+	rm -f $(OBJS) $(HOBJ) $(USBOBJ) $(USBCDCOBJ) $(TARGET).elf
 
 flash: $(TARGET).bin
 	sudo dfu-util -d 1eaf:0003 -c 1 -i 0 -a 2 -D $(TARGET).bin

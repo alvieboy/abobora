@@ -154,4 +154,16 @@ void SysTick_Handler(void)
     HAL_IncTick();
 }
 
+extern PCD_HandleTypeDef hpcd;
 
+void USB_LP_CAN1_RX0_IRQHandler(void)
+{
+  HAL_PCD_IRQHandler(&hpcd);
+}
+
+extern void audio_interrupt();
+
+void TIM2_IRQHandler()
+{
+    audio_interrupt();
+}

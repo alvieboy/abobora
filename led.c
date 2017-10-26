@@ -4,6 +4,9 @@
 #include <stm32f1xx_hal_rcc.h>
 #include "led.h"
 
+
+// Max 50mA/LED
+
 #ifdef LED_CHUNK
 static indexed_pixel_t led_framebuffer[LED_CHUNK];
 #else
@@ -24,12 +27,29 @@ static pixel_t led_pixel_from_idx(uint8_t idx)
     if (pallete) {
         return pallete[idx];
     }
-    return 0;
+    return 0xffffff;
 }
 
 void led_init()
 {
     // TBD. GPIO setup.
+
+    GPIO_InitTypeDef init;
+
+    init.Pin = LED_CLK_GPIO_PIN;
+    init.Mode = GPIO_MODE_OUTPUT_PP;
+    init.Pull = GPIO_NOPULL;
+    init.Speed = GPIO_SPEED_FREQ_HIGH;
+
+    HAL_GPIO_Init( LED_CLK_GPIO, &init );
+
+    init.Pin = LED_DATA_GPIO_PIN;
+    init.Mode = GPIO_MODE_OUTPUT_PP;
+    init.Pull = GPIO_NOPULL;
+    init.Speed = GPIO_SPEED_FREQ_HIGH;
+
+    HAL_GPIO_Init( LED_DATA_GPIO, &init );
+
     ledptr = 0;
 }
 
