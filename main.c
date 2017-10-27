@@ -10,7 +10,7 @@
 #include "audio.h"
 #include "led.h"
 #include "distance.h"
-#include "images/fire.h"
+#include "fogo-pallete.h"
 
 void Error_Handler();
 
@@ -206,8 +206,14 @@ void usb_init_pins()
   HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
 }
 
+static uint8_t lv=0;
 void callback_end_of_led_frame()
 {
+    int i;
+    for (i=0;i<LED_NUMBER;i++)
+        led_setpixel(i, lv);
+    lv++;
+
 }
 
 int main()
@@ -227,10 +233,8 @@ int main()
     //audio_init();
 
     led_init();
-    led_setpallete((uint16_t*)fire_pallete);
-    int i;
-    for (i=0;i<8;i++)
-        led_setpixel(i, 0x80);
+    led_setpallete(fogo_pallete);
+
 
     distance_init();
 

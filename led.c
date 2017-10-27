@@ -94,7 +94,7 @@ static uint32_t rgb565to888(uint16_t value)
     uint32_t green = value & 0x7E0;
     uint32_t blue = value & 0x1F;
     return (red<<16) | (green<<8) | blue;
-    return 0xFF00FF;
+   // return 0xFF00FF;
 }
 
 void led_txchunk()
@@ -109,11 +109,13 @@ void led_txchunk()
 #endif
         indexed_pixel_t pixelidx = led_framebuffer[ledpos];
 
-        pixelidx = 127;
+        //pixelidx = 127;
 
         uint32_t pixel = rgb565to888(led_pixel_from_idx(pixelidx));
-        //pixel |= 0xFF000000; // Setup data frame, max brightness
-        pixel = 0x00FF00;
+        //pixel = ledptr + (ledptr<<8) + (ledptr<<16);
+        pixel |= 0xFF000000; // Setup data frame, max brightness
+        //pixel = 0xFF00FF00;
+
         led_transmit(pixel);
         chunksize--;
         ledptr++;

@@ -99,6 +99,8 @@ SRC=main.c \
     usbd_conf.c  \
     usbd_desc.c \
     sbrk.c \
+    crc16.c \
+    spiflash.c \
     system_stm32f1xx.c	\
     stm32f1xx_it.c 	
 
