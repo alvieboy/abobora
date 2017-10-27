@@ -5,6 +5,8 @@
 #include "led.h"
 
 
+extern void callback_end_of_led_frame();
+
 // Max 50mA/LED
 
 #ifdef LED_CHUNK
@@ -12,6 +14,11 @@ static indexed_pixel_t led_framebuffer[LED_CHUNK];
 #else
 static indexed_pixel_t led_framebuffer[LED_NUMBER];
 #endif
+
+void led_setpixel(int index, uint8_t value)
+{
+    led_framebuffer[index] = value;
+}
 
 static pixel_t *pallete = NULL;
 
@@ -27,7 +34,7 @@ static pixel_t led_pixel_from_idx(uint8_t idx)
     if (pallete) {
         return pallete[idx];
     }
-    return 0xffffff;
+    return 0xffff;
 }
 
 void led_init()
@@ -81,6 +88,15 @@ void led_flush()
     }
 }
 
+static uint32_t rgb565to888(uint16_t value)
+{
+    uint32_t red = value & 0xF800;
+    uint32_t green = value & 0x7E0;
+    uint32_t blue = value & 0x1F;
+    return (red<<16) | (green<<8) | blue;
+    return 0xFF00FF;
+}
+
 void led_txchunk()
 {
     unsigned chunksize = 8;
@@ -92,8 +108,12 @@ void led_txchunk()
         unsigned ledpos = ledptr;
 #endif
         indexed_pixel_t pixelidx = led_framebuffer[ledpos];
-        pixel_t pixel = led_pixel_from_idx(pixelidx);
-        pixel |= 0xFF000000; // Setup data frame, max brightness
+
+        pixelidx = 127;
+
+        uint32_t pixel = rgb565to888(led_pixel_from_idx(pixelidx));
+        //pixel |= 0xFF000000; // Setup data frame, max brightness
+        pixel = 0x00FF00;
         led_transmit(pixel);
         chunksize--;
         ledptr++;
@@ -101,5 +121,6 @@ void led_txchunk()
     if (ledptr>=LED_NUMBER) {
         ledptr=0;
         led_flush();
+        callback_end_of_led_frame();
     }
 }

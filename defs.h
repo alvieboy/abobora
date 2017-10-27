@@ -9,7 +9,7 @@
 #define AUDIO_TIM_IRQ TIM2_IRQn
 
 // LED
-#define LED_CHUNK 8
+//#define LED_CHUNK 8
 #define LED_NUMBER 96
 
 #define LED_DATA_GPIO GPIOB

@@ -10,6 +10,7 @@
 #include "audio.h"
 #include "led.h"
 #include "distance.h"
+#include "images/fire.h"
 
 void Error_Handler();
 
@@ -86,6 +87,8 @@ void Error_Handler()
     while (1) {
         c++;
         HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, c&1);
+        volatile int z=900000;
+        while (z--) {}
     }
 }
 
@@ -203,6 +206,9 @@ void usb_init_pins()
   HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
 }
 
+void callback_end_of_led_frame()
+{
+}
 
 int main()
 {
@@ -214,28 +220,33 @@ int main()
     init_gpio();
 
     spi_init();
-    usb_init();
+    //usb_init();
 
     HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
 
-    audio_init();
+    //audio_init();
 
     led_init();
+    led_setpallete((uint16_t*)fire_pallete);
+    int i;
+    for (i=0;i<8;i++)
+        led_setpixel(i, 0x80);
 
     distance_init();
 
 
     volatile int z = 0;
     while (1) {
-        HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
+       // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
         led_txchunk();
-        HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
+       // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
         z++;
-
+#if 0
         if ((z==64000)) {
             z=0;
             distance_read();
         }
+#endif
     }
 
 }
