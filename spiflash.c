@@ -1,4 +1,6 @@
-#include <crc16.h>
+#include "crc16.h"
+#include "spiflash.h"
+#include "spi.h"
 
 #define BOARD_ID 0x0AB0B0FA
 #define CLK_FREQ 72000000
@@ -63,6 +65,7 @@ static unsigned char buffer[256 + 32];
 static unsigned char syncSeen;
 static unsigned char unescaping;
 static crc_t crc;
+static crc_t txcrc;
 
 void spiflash_init()
 {
@@ -70,7 +73,7 @@ void spiflash_init()
     unescaping = 0;
     crc16__reset(&crc);
 }
-
+#if 0
 int inbyte(unsigned char *dest)
 {
     return -1;
@@ -79,28 +82,8 @@ int inbyte(unsigned char *dest)
 void outbyte(unsigned char c)
 {
 }
+#endif
 
-void spiwrite(unsigned char c)
-{
-}
-
-void spiwrite32(uint32_t c)
-{
-}
-
-int spiread()
-{
-}
-
-void spi_disable()
-{
-}
-
-void spi_enable()
-{
-}
-
-static crc_t txcrc;
 
 static void sendByte(unsigned int i)
 {
@@ -135,16 +118,22 @@ static void finishSend()
     outbyte(HDLC_frameFlag);
 }
 
+static void simpleReply(unsigned int r)
+{
+    prepareSend();
+    sendByte(REPLY(r));
+    finishSend();
+}
 
 static int spi_read_status()
 {
     unsigned int status;
 
     spi_enable();
-    spiwrite(0x05);
+    spi_write(0x05);
 
-    spiwrite(0x00);
-    status = spiread() & 0xff;
+    spi_write(0x00);
+    status = spi_read() & 0xff;
     spi_disable();
     return status;
 }
@@ -154,8 +143,8 @@ static unsigned int spi_read_id()
     unsigned int ret;
 
     spi_enable();
-    spiwrite32(0x9f000000);
-    ret = spiread();
+    spi_write32(0x9f000000);
+    ret = spi_read();
     spi_disable();
     return ret;
 }
@@ -178,15 +167,15 @@ static void cmd_raw_send_receive(unsigned char *buffer)
     txcount += buffer[2];
 
     for (count=0; count<txcount; count++) {
-        spiwrite(buffer[5+count]);
+        spi_write(buffer[5+count]);
     }
     rxcount = buffer[3];
     rxcount<<=8;
     rxcount += buffer[4];
     // Now, receive and write buffer
     for(count=0;count <rxcount;count++) {
-        spiwrite(0x00);
-        buffer[count] = spiread();
+        spi_write(0x00);
+        buffer[count] = spi_read();
     }
     spi_disable();
 
@@ -275,7 +264,7 @@ static void cmd_leavepgm(unsigned char *buffer)
 }
  
 
-void cmd_none(unsigned char *buffer)
+static void cmd_none(unsigned char *buffer)
 {
 }
 

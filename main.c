@@ -11,6 +11,8 @@
 #include "led.h"
 #include "distance.h"
 #include "fogo-pallete.h"
+#include "spi.h"
+#include "spiflash.h"
 
 void Error_Handler();
 
@@ -92,44 +94,6 @@ void Error_Handler()
     }
 }
 
-static SPI_HandleTypeDef spih;
-
-static void spi_init()
-{
-    spih.Instance = SPI1;
-
-    spih.Init.Mode = SPI_MODE_MASTER;
-    spih.Init.Direction = SPI_DIRECTION_2LINES;
-    spih.Init.DataSize = SPI_DATASIZE_16BIT;
-    spih.Init.CLKPolarity = SPI_POLARITY_LOW;
-    spih.Init.CLKPhase = SPI_PHASE_1EDGE;
-    spih.Init.NSS = SPI_NSS_SOFT;
-    spih.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
-    spih.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    spih.Init.TIMode = SPI_TIMODE_DISABLE;
-    spih.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-    spih.Init.CRCPolynomial = 0;
-
-    __HAL_RCC_SPI1_CLK_ENABLE();
-
-    HAL_SPI_Init(&spih);
-}
-
-static void spi_tx32(unsigned val)
-{
-    unsigned char temp[4];
-    unsigned char temptx[4];
-    uint16_t high = val>>16;
-    uint16_t low = val;
-
-    temptx[0] = 0;
-    temptx[1] = 0;
-    temptx[2] = 0;
-    temptx[3] = 0;
-
-    HAL_SPI_TransmitReceive(&spih, &high, temp, 1, 1000);
-    HAL_SPI_TransmitReceive(&spih, &low, temp,  1, 1000);
-}
 
 static USBD_HandleTypeDef  USBD_Device;
 extern USBD_DescriptorsTypeDef VCP_Desc;
@@ -226,6 +190,7 @@ int main()
     init_gpio();
 
     spi_init();
+    spiflash_init();
     //usb_init();
 
     HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
@@ -243,7 +208,8 @@ int main()
     while (1) {
        // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
         led_txchunk();
-       // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
+        // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
+        spiflash_check();
         z++;
 #if 0
         if ((z==64000)) {
@@ -253,4 +219,15 @@ int main()
 #endif
     }
 
+}
+
+// FOR SPI. Map to UART or USB/UART
+
+void outbyte(uint8_t val)
+{
+}
+
+int inbyte(uint8_t *target)
+{
+    return -1;
 }

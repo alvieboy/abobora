@@ -24,6 +24,9 @@
 #define DISTANCE_TRIG_GPIO GPIOB
 #define DISTANCE_TRIG_GPIO_CLK_ENABLE __HAL_RCC_GPIOB_CLK_ENABLE
 
-
+// SPI/SPI Flash
+#define SPI_CS_GPIO GPIOA
+#define SPI_CS_GPIO_PIN 15
+#define SPI_GPIO_CLK_ENABLE() /* Already done */
 
 #endif

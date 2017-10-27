@@ -20,11 +20,11 @@ void led_setpixel(int index, uint8_t value)
     led_framebuffer[index] = value;
 }
 
-static pixel_t *pallete = NULL;
+static const pixel_t *pallete = NULL;
 
 static unsigned ledptr = 0;
 
-void led_setpallete(pixel_t *pal)
+void led_setpallete(const pixel_t *pal)
 {
     pallete=pal;
 }
