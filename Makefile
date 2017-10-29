@@ -104,6 +104,7 @@ SRC=main.c \
     spi.c \
     servo.c \
     timer.c \
+    smallfs.c \
     system_stm32f1xx.c	\
     stm32f1xx_it.c 	
 
