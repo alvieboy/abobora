@@ -13,7 +13,7 @@ static TIM_HandleTypeDef  TimHandle;
 
 extern void Error_Handler();
 
-void servo_set_channel(uint8_t channel, uint16_t pulse)
+void servo_set_channel(uint8_t channel, unsigned pulse)
 {
     TIM_OC_InitTypeDef  sConfig;
     sConfig.OCMode       = TIM_OCMODE_PWM1;
@@ -32,15 +32,64 @@ void servo_set_channel(uint8_t channel, uint16_t pulse)
     }
 }
 
-void servo_set_channel_a(uint16_t pulse)
+void servo_set_channel_a(unsigned pulse)
 {
+    if (HAL_TIM_PWM_Stop(&TimHandle, SERVO_TIM_CHANNEL_A) != HAL_OK)
+    {
+        /* PWM Generation Error */
+        Error_Handler();
+    }
+
     servo_set_channel(SERVO_CHANNEL_A, pulse);
+    if (HAL_TIM_PWM_Start(&TimHandle, SERVO_TIM_CHANNEL_A) != HAL_OK)
+    {
+        /* PWM Generation Error */
+        Error_Handler();
+    }
 }
 
-void servo_set_channel_b(uint16_t pulse)
+void servo_set_channel_b(unsigned pulse)
 {
+    if (HAL_TIM_PWM_Stop(&TimHandle, SERVO_TIM_CHANNEL_B) != HAL_OK)
+    {
+        /* PWM Generation Error */
+        Error_Handler();
+    }
+
     servo_set_channel(SERVO_CHANNEL_B, pulse);
+    if (HAL_TIM_PWM_Start(&TimHandle, SERVO_TIM_CHANNEL_B) != HAL_OK)
+    {
+        /* PWM Generation Error */
+        Error_Handler();
+    }
+
 }
+
+static void servo_enable_setup()
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+
+    GPIO_InitStruct.Pin = SERVO_ENABLE_GPIO_PIN;
+
+    HAL_GPIO_WritePin( SERVO_ENABLE_GPIO, SERVO_ENABLE_GPIO_PIN, 0);
+
+    HAL_GPIO_Init(SERVO_ENABLE_GPIO, &GPIO_InitStruct);
+}
+
+void servo_enable()
+{
+    HAL_GPIO_WritePin( SERVO_ENABLE_GPIO, SERVO_ENABLE_GPIO_PIN, 1);
+}
+
+void servo_disable()
+{
+    HAL_GPIO_WritePin( SERVO_ENABLE_GPIO, SERVO_ENABLE_GPIO_PIN, 0);
+}
+
 
 void servo_init()
 {
@@ -52,6 +101,8 @@ void servo_init()
 
     GPIO_InitStruct.Pin = SERVO_GPIO_PIN_A | SERVO_GPIO_PIN_B;
     HAL_GPIO_Init(SERVO_GPIO, &GPIO_InitStruct);
+
+    servo_enable_setup();
 
     SERVO_TIM_CLK_ENABLE();
 
@@ -82,4 +133,11 @@ void servo_init()
         /* PWM Generation Error */
         Error_Handler();
     }
+    // Let PWM settle
+    HAL_Delay(100);
+    servo_enable();
+    HAL_Delay(2000); // Let motors settle
+    //servo_disable();
+    //HAL_Delay(2000); // Let motors settle
+
 }

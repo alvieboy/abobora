@@ -49,5 +49,8 @@
 #define SERVO_DEFAULT_PULSE_A 3500 /* Caixa aberta */
 #define SERVO_DEFAULT_PULSE_B 2580 /* Olho recolhido */
 
+#define SERVO_ENABLE_GPIO GPIOB
+#define SERVO_ENABLE_GPIO_PIN GPIO_PIN_4
+
 
 #endif
