@@ -29,4 +29,25 @@
 #define SPI_CS_GPIO_PIN 15
 #define SPI_GPIO_CLK_ENABLE() /* Already done */
 
+#define SERVO_TIM TIM3
+#define SERVO_GPIO GPIOB
+
+#define SERVO_GPIO_PIN_A GPIO_PIN_0
+#define SERVO_TIM_CHANNEL_A TIM_CHANNEL_3
+#define SERVO_GPIO_PIN_B GPIO_PIN_1
+#define SERVO_TIM_CHANNEL_B TIM_CHANNEL_4
+#define SERVO_TIM_CLK_ENABLE    __HAL_RCC_TIM3_CLK_ENABLE
+
+/*
+ Tampa: 850 -  fechada
+ 3500 - aberta
+
+ Olho: 900 - fora
+       2580- recolhido
+ */
+
+#define SERVO_DEFAULT_PULSE_A 3500 /* Caixa aberta */
+#define SERVO_DEFAULT_PULSE_B 2580 /* Olho recolhido */
+
+
 #endif

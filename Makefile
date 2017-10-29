@@ -85,7 +85,7 @@ CFLAGS=-O2 -Wall -mcpu=cortex-m3 -mthumb -mthumb-interwork -I$(HALINCPATH) -I. \
 -I$(CUBE)/Drivers/CMSIS/Include \
 -I$(USBCOREINC) \
 -I$(USBCDCINC) \
--DSTM32F103x6 \
+-DSTM32F103xB \
 -fdata-sections \
 -ffunction-sections
 
@@ -102,6 +102,8 @@ SRC=main.c \
     crc16.c \
     spiflash.c \
     spi.c \
+    servo.c \
+    timer.c \
     system_stm32f1xx.c	\
     stm32f1xx_it.c 	
 

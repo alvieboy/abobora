@@ -13,6 +13,7 @@
 #include "fogo-pallete.h"
 #include "spi.h"
 #include "spiflash.h"
+#include "timer.h"
 
 void Error_Handler();
 
@@ -194,6 +195,7 @@ int main()
     //usb_init();
 
     HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
+    servo_init();
 
     //audio_init();
 
@@ -210,6 +212,7 @@ int main()
         led_txchunk();
         // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
         spiflash_check();
+        timer__iterate();
         z++;
 #if 0
         if ((z==64000)) {
