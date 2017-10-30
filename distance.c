@@ -142,7 +142,7 @@ int distance_read(uint32_t *value, uint8_t *closeness)
         
     *value = (uint32_t)(((float)dist/(float)DIST_ARRAY_SIZE)*METERS_PER_TICK*0.5);
 
-    if(*value < 0.1)
+    if(*value < 0.5)
     {
         *closeness = DISTANCE_UPCLOSE;
 #ifdef DIST_TEST
