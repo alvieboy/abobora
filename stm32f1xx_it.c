@@ -167,3 +167,10 @@ void TIM2_IRQHandler()
 {
     audio_interrupt();
 }
+
+extern void distance_echo_interrupt();
+
+void TIM3_IRQHandler()
+{
+    distance_echo_interrupt();
+}
