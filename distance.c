@@ -15,6 +15,50 @@ static TIM_IC_InitTypeDef ICHandle;
 uint32_t distance[DIST_ARRAY_SIZE] = {0};
 
 
+void distance_test_init()
+{
+
+    #define DIST_TEST
+    
+    GPIO_InitTypeDef init_pb12;
+
+    init_pb12.Pin = GPIO_PIN_12;
+    init_pb12.Mode = GPIO_MODE_OUTPUT_PP;
+    init_pb12.Pull = GPIO_NOPULL;
+    init_pb12.Speed = GPIO_SPEED_FREQ_HIGH;
+
+    HAL_GPIO_Init( GPIOB, &init_pb12 );
+    
+    GPIO_InitTypeDef init_pb13;
+
+    init_pb13.Pin = GPIO_PIN_13;
+    init_pb13.Mode = GPIO_MODE_OUTPUT_PP;
+    init_pb13.Pull = GPIO_NOPULL;
+    init_pb13.Speed = GPIO_SPEED_FREQ_HIGH;
+
+    HAL_GPIO_Init( GPIOB, &init_pb13 );
+    
+    GPIO_InitTypeDef init_pb14;
+
+    init_pb14.Pin = GPIO_PIN_14;
+    init_pb14.Mode = GPIO_MODE_OUTPUT_PP;
+    init_pb14.Pull = GPIO_NOPULL;
+    init_pb14.Speed = GPIO_SPEED_FREQ_HIGH;
+
+    HAL_GPIO_Init( GPIOB, &init_pb14 );
+    
+    GPIO_InitTypeDef init_pb15;
+
+    init_pb15.Pin = GPIO_PIN_15;
+    init_pb15.Mode = GPIO_MODE_OUTPUT_PP;
+    init_pb15.Pull = GPIO_NOPULL;
+    init_pb15.Speed = GPIO_SPEED_FREQ_HIGH;
+
+    HAL_GPIO_Init( GPIOB, &init_pb15 );
+    
+    
+}
+
 
 void distance_init()
 {
@@ -88,14 +132,41 @@ void distance_ping()
     HAL_GPIO_WritePin( DISTANCE_TRIG_GPIO, DISTANCE_TRIG_GPIO_PIN, 0);
 }
 
-int distance_read(uint32_t *value)
+int distance_read(uint32_t *value, uint8_t *closeness)
 {
     uint32_t dist = 0;
-    
-    for(int i = 0 ;i < DIST_ARRAY_SIZE; i++)
+    int i = 0;
+
+    for(i = 0 ;i < DIST_ARRAY_SIZE; i++)
         dist += distance[i];
         
-    *value = (uint32_t)(((float)dist/(float)DIST_ARRAY_SIZE)*METERS_PER_TICK);
+    *value = (uint32_t)(((float)dist/(float)DIST_ARRAY_SIZE)*METERS_PER_TICK*0.5);
+
+    if(*value < 0.1)
+    {
+        *closeness = DISTANCE_UPCLOSE;
+#ifdef DIST_TEST
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
+#endif
+    }else if(*value < 1.0)
+    {
+        *closeness = DISTANCE_CLOSE;
+#ifdef DIST_TEST
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
+#endif
+    }else if(*value < 2.0)
+    {
+        *closeness = DISTANCE_FAR;
+#ifdef DIST_TEST
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
+#endif
+    }else
+    {
+        *closeness = DISTANCE_NODETECTION;
+#ifdef DIST_TEST
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
+#endif
+    }
         
     return 0;
 }

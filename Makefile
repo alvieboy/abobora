@@ -80,7 +80,7 @@ HOBJ=$(patsubst %, $(HALSRCPATH)/%, $(_HOBJ))
 USBOBJ=$(patsubst %, $(USBCORESRC)/%, $(_USBOBJ))
 USBCDCOBJ=$(patsubst %, $(USBCDCSRC)/%, $(_USBCDCOBJ))
 
-CFLAGS=-O2 -Wall -mcpu=cortex-m3 -mthumb -mthumb-interwork -I$(HALINCPATH) -I. \
+CFLAGS= -std=c11 -O2 -Wall -mcpu=cortex-m3 -mthumb -mthumb-interwork -I$(HALINCPATH) -I. \
 -I$(CUBE)/Drivers/CMSIS/Device/ST/STM32F1xx/Include/ \
 -I$(CUBE)/Drivers/CMSIS/Include \
 -I$(USBCOREINC) \
