@@ -6,4 +6,6 @@
 void distance_init();
 int distance_read();
 
+void distance_ping();
+
 #endif

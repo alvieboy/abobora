@@ -13,6 +13,8 @@
 #include "fogo-pallete.h"
 #include "spi.h"
 #include "spiflash.h"
+#include "timer.h"
+#include "servo.h"
 
 void Error_Handler();
 
@@ -89,7 +91,7 @@ void Error_Handler()
     while (1) {
         c++;
         HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, c&1);
-        volatile int z=900000;
+        volatile int z=90000;
         while (z--) {}
     }
 }
@@ -180,6 +182,59 @@ void callback_end_of_led_frame()
 
 }
 
+#define SERVO_LID_CLOSED 850
+#define SERVO_LID_OPEN   3500
+
+#define SERVO_EYE_OUT    900
+#define SERVO_EYE_IN     2580
+
+static void close_lid()
+{
+    servo_enable();
+    servo_set_channel_a(SERVO_LID_CLOSED);
+    HAL_Delay(2000);
+//    servo_disable();
+}
+
+static void open_lid()
+{
+    servo_enable();
+    servo_set_channel_a(SERVO_LID_OPEN);
+    HAL_Delay(2000);
+//    servo_disable();
+}
+
+static void eye_out()
+{
+    servo_enable();
+    servo_set_channel_b(SERVO_EYE_OUT);
+    HAL_Delay(2000);
+//    servo_disable();
+}
+
+static void eye_in()
+{
+    servo_enable();
+    servo_set_channel_b(SERVO_EYE_IN);
+    HAL_Delay(2000);
+//    servo_disable();
+}
+
+static uint8_t ledv=0;
+
+int led_toggle(void *data)
+{
+    HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, ledv);
+    ledv = !ledv;
+    return 0;
+}
+
+int sensor_ping(void *data)
+{
+    distance_ping();
+    return 0;
+}
+
 int main()
 {
     setupCLK();
@@ -191,25 +246,44 @@ int main()
 
     spi_init();
     spiflash_init();
+    distance_init();
     //usb_init();
 
     HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
-
+    servo_init();
+#if 0
+    while (1) {
+        open_lid();
+        eye_out();
+        eye_in();
+        close_lid();
+    }
+    // Close LID
+//    close_lid();
+    eye_out();
     //audio_init();
+#endif
 
     led_init();
     led_setpallete(fogo_pallete);
 
 
-    distance_init();
+    //distance_init();
+
+    HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
+
+    timer__init();
+    timer__add(200, &sensor_ping, NULL);
+    timer__add(100, &led_toggle, NULL);
 
 
     volatile int z = 0;
     while (1) {
-       // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
+        //HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
         led_txchunk();
-        // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
-        spiflash_check();
+        //HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
+        //spiflash_check();
+        timer__iterate();
         z++;
 #if 0
         if ((z==64000)) {
