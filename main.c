@@ -15,6 +15,7 @@
 #include "spiflash.h"
 #include "timer.h"
 #include "servo.h"
+#include "uart.h"
 
 void Error_Handler();
 
@@ -260,6 +261,26 @@ int main()
     spiflash_init();
     distance_init();
     //usb_init();
+
+    // SPI test
+    spi_disable();
+    spi_enable();
+
+    unsigned id = 0;
+    spi_write(0x9f);
+    spi_write(0x00);
+    id = spi_read();
+    spi_write(0x00);
+    id<<=8;
+    id += spi_read();
+    spi_write(0x00);
+    id<<=8;
+    id = spi_read();
+    outstring("SPI ID: ");
+    printhex(id);
+    outstring("\r\n");
+
+    spi_disable();
 
     HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
     servo_init();
