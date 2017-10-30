@@ -17,50 +17,38 @@ struct timer_entry
     void *userdata;
 };
 
-static struct timer_entry *timers[MAX_TIMERS];
+struct timer_entry localtimerlist[MAX_TIMERS];
 
 void timer__init()
 {
-    memset(timers,0,sizeof(timers));
+    for (int i=0;i<MAX_TIMERS;i++) {
+        localtimerlist[i].expires = 0;
+    }
 }
 
 int timer__add(uint32_t delta_ms, int (*callback)(void*), void *data)
 {
-    struct timer_entry *tmr;
     int i;
-
-    tmr = (struct timer_entry*) malloc (sizeof(struct timer_entry));
-
-    tmr->expires = HAL_GetTick() + (uint32_t)delta_ms;
-    tmr->delta_ms = delta_ms;
-    tmr->callback = callback;
-    tmr->userdata = data;
-
     for (i=0;i<MAX_TIMERS;i++) {
-        if (timers[i] == NULL) {
-            timers[i] = tmr;
-            break;
+        if (localtimerlist[i].expires == 0) {
+            localtimerlist[i].expires = HAL_GetTick() + (uint32_t)delta_ms;
+            localtimerlist[i].delta_ms = delta_ms;
+            localtimerlist[i].callback = callback;
+            localtimerlist[i].userdata = data;
+            return i;
         }
     }
-
-    if (i==MAX_TIMERS)
-        i=-1;
-
-    return i;
+    return -1;
 }
 
 void timer__cancel(int timer)
 {
-    struct timer_entry *e = timers[timer];
-    timers[timer] = NULL;
-    if (e) {
-        free(e);
-    }
+    localtimerlist[timer].expires = 0;
 }
 #if 0
 void timer__reschedule(int timer, uint32_t newDelta)
 {
-    struct timer_entry *e = timers[timer];
+    struct timer_entry *e = localtimerlist[timer];
 }
 #endif
 
@@ -73,9 +61,9 @@ void timer__iterate()
         retry = 0;
         uint32_t now = HAL_GetTick();
         for (i=0;i<MAX_TIMERS;i++) {
-            struct timer_entry *e = timers[i];
+            struct timer_entry *e = &localtimerlist[i];
 
-            if (e!=NULL) {
+            if (e->expires != 0) {
 
                 if (e->expires <= now) {
 #if 0
@@ -88,8 +76,7 @@ void timer__iterate()
                     UARTPrint("\r\n");
 #endif
                     if (e->callback( e->userdata )!=0) {
-                        timers[i] =  NULL;
-                        free( e );
+                        localtimerlist[i].expires = 0;
                         retry = 1;
                         break; // Stop processing.
                     } else {

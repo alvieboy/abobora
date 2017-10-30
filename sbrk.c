@@ -13,7 +13,7 @@ void* _sbrk ( int increment ) {
     
     if (heap == 0) {
         // first allocation
-        heap = (void*)&_HEAP_START;
+        heap = (void*)0x20004000;//;&_HEAP_START;
     }
 
     prevHeap = heap;

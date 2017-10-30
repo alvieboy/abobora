@@ -91,7 +91,7 @@ void Error_Handler()
     while (1) {
         c++;
         HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, c&1);
-        volatile int z=900000;
+        volatile int z=90000;
         while (z--) {}
     }
 }
@@ -220,6 +220,21 @@ static void eye_in()
 //    servo_disable();
 }
 
+static uint8_t ledv=0;
+
+int led_toggle(void *data)
+{
+    HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, ledv);
+    ledv = !ledv;
+    return 0;
+}
+
+int sensor_ping(void *data)
+{
+    distance_ping();
+    return 0;
+}
+
 int main()
 {
     setupCLK();
@@ -231,11 +246,12 @@ int main()
 
     spi_init();
     spiflash_init();
+    distance_init();
     //usb_init();
 
     HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
     servo_init();
-
+#if 0
     while (1) {
         open_lid();
         eye_out();
@@ -246,20 +262,27 @@ int main()
 //    close_lid();
     eye_out();
     //audio_init();
+#endif
 
     led_init();
     led_setpallete(fogo_pallete);
 
 
-    distance_init();
+    //distance_init();
+
+    HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
+
+    timer__init();
+    timer__add(200, &sensor_ping, NULL);
+    timer__add(100, &led_toggle, NULL);
 
 
     volatile int z = 0;
     while (1) {
-       // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
+        //HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
         led_txchunk();
-        // HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
-        spiflash_check();
+        //HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
+        //spiflash_check();
         timer__iterate();
         z++;
 #if 0

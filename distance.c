@@ -22,6 +22,7 @@ void distance_init()
 
     HAL_GPIO_Init( DISTANCE_TRIG_GPIO, &init );
 
+    return;
     /*Echo Input capture timer and gpio init*/
 
     //Maximum value up until which the timer counts to. Defines the maximum time that the system waits for an echo.
@@ -30,7 +31,7 @@ void distance_init()
 
 
     // Enable the necessary low level resources
-    HAL_TIM_IC_MspInit(&TimHandle);
+//    HAL_TIM_IC_MspInit(&TimHandle);
 
     //Echo GPIO map TIM3_CH1 to PA6 as input
 
@@ -78,7 +79,7 @@ void distance_ping()
 {
     //Send trigger pulse
     //Start timer in input capture mode TBD
-    HAL_TIM_IC_Start(&TimHandle, TIM_CHANNEL_1);
+    //HAL_TIM_IC_Start(&TimHandle, TIM_CHANNEL_1);
 
     HAL_GPIO_WritePin( DISTANCE_TRIG_GPIO, DISTANCE_TRIG_GPIO_PIN, 1);
     distance_delay();
