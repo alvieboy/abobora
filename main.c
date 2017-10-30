@@ -91,7 +91,7 @@ void Error_Handler()
     while (1) {
         c++;
         HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, c&1);
-        volatile int z=90000;
+        volatile int z=9000;
         while (z--) {}
     }
 }
@@ -175,11 +175,19 @@ void usb_init_pins()
 static uint8_t lv=0;
 void callback_end_of_led_frame()
 {
+
+    led_setpixel(72, lv);
+    led_setpixel(73, lv);
+    led_setpixel(74, lv);
+    led_setpixel(75, lv);
+    lv++;
+
+#if 0
     int i;
     for (i=0;i<LED_NUMBER;i++)
         led_setpixel(i, lv);
     lv++;
-
+#endif
 }
 
 #define SERVO_LID_CLOSED 850
@@ -232,6 +240,7 @@ int led_toggle(void *data)
 int sensor_ping(void *data)
 {
     distance_ping();
+    outstring("\xff");
     return 0;
 }
 
@@ -243,6 +252,9 @@ int main()
     HAL_Init();
 
     init_gpio();
+    uart_init();
+    outstring("Ready to rock!!\r\n");
+    //outbyte("C");
 
     spi_init();
     spiflash_init();
@@ -264,8 +276,17 @@ int main()
     //audio_init();
 #endif
 
+    servo_disable();
     led_init();
     led_setpallete(fogo_pallete);
+
+    int i;
+    for (i=0;i<72;i++)
+        led_setpixel(i, i*2);
+    led_setpixel(72, 0);
+    led_setpixel(73, 0);
+    led_setpixel(74, 0);
+    led_setpixel(75, 0);
 
 
     //distance_init();
@@ -295,13 +316,3 @@ int main()
 
 }
 
-// FOR SPI. Map to UART or USB/UART
-
-void outbyte(uint8_t val)
-{
-}
-
-int inbyte(uint8_t *target)
-{
-    return -1;
-}

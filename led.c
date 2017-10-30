@@ -90,11 +90,10 @@ void led_flush()
 
 static uint32_t rgb565to888(uint16_t value)
 {
-    uint32_t red = value & 0xF800;
-    uint32_t green = value & 0x7E0;
+    uint32_t red = (value & 0xF800) >> 11;
+    uint32_t green = (value & 0x7E0) >> 5;
     uint32_t blue = value & 0x1F;
-    return (red<<16) | (green<<8) | blue;
-   // return 0xFF00FF;
+    return (blue<<16) | (green<<8) | red;
 }
 
 void led_txchunk()

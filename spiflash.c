@@ -1,6 +1,7 @@
 #include "crc16.h"
 #include "spiflash.h"
 #include "spi.h"
+#include "uart.h"
 
 #define BOARD_ID 0x0AB0B0FA
 #define CLK_FREQ 72000000

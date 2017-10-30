@@ -39,7 +39,8 @@ void distance_init()
     GPIOinit.Speed = GPIO_SPEED_FREQ_HIGH;
 
     HAL_GPIO_Init( DISTANCE_ECHO_GPIO, &GPIOinit );
-    
+
+    TimHandle.Instance = DISTANCE_TIM;
     TimHandle.Init.Prescaler         = 36;
     TimHandle.Init.ClockDivision     = 0;
     TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
@@ -67,7 +68,7 @@ void distance_init()
 
 static void distance_delay()
 {
-    volatile int counter = 80;
+    volatile int counter = 40;
     while (counter--) {
     }
 }
