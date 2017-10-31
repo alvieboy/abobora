@@ -170,7 +170,7 @@ void TIM2_IRQHandler()
 
 extern void distance_echo_interrupt();
 
-void TIM3_IRQHandler()
+void TIM4_IRQHandler()
 {
     distance_echo_interrupt();
 }

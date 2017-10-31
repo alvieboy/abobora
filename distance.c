@@ -139,7 +139,8 @@ int distance_read(uint32_t *value, uint8_t *closeness)
 
     for(i = 0 ;i < DIST_ARRAY_SIZE; i++)
         dist += distance[i];
-        
+    *value = dist;
+#if 0
     *value = (uint32_t)(((float)dist/(float)DIST_ARRAY_SIZE)*METERS_PER_TICK*0.5);
 
     if(*value < 0.5)
@@ -167,7 +168,7 @@ int distance_read(uint32_t *value, uint8_t *closeness)
         HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
 #endif
     }
-        
+#endif
     return 0;
 }
 

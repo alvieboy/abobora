@@ -240,8 +240,16 @@ int led_toggle(void *data)
 
 int sensor_ping(void *data)
 {
+    uint32_t d=0, c=0;
+//    distance_read(&d,&c);
+    outstring("D ");
+    printhex(d);
+    outstring(" ");
+    printhex((unsigned)c);
+    outstring("\r\n");
+
     distance_ping();
-    outstring("\xff");
+    //outstring("\xff");
     return 0;
 }
 
