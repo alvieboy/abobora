@@ -68,6 +68,8 @@ void distance_init()
 
     DISTANCE_TRIG_GPIO_CLK_ENABLE();
     
+    DISTANCE_TIM_CLK_ENABLE();
+    
     DISTANCE_TIM_CHANNEL_GPIO_PORT();
 
     init.Pin = DISTANCE_TRIG_GPIO_PIN;
@@ -192,15 +194,15 @@ void distance_echo_interrupt()
     //Stop timer in input capture mode TIM3
     HAL_TIM_IC_Stop(&TimHandle, TIM_CHANNEL_1);
     
-    if(TIM4->SR & TIM_SR_UIF)
+    if(DISTANCE_TIM->SR & TIM_SR_UIF)
     {
-        if(TIM3->CNT < DISTANCE_THRESHOLD)
-            distance[distance_meas_idx] = TIM3->CNT;
+        if(DISTANCE_TIM->CNT < DISTANCE_THRESHOLD)
+            distance[distance_meas_idx] = DISTANCE_TIM->CNT;
             distance_meas_idx += 1;
             
             if(distance_meas_idx > DIST_ARRAY_SIZE) 
                 distance_meas_idx = 0;
         
-        TIM4->SR &= ~(TIM_SR_UIF);
+        DISTANCE_TIM->SR &= ~(TIM_SR_UIF);
     }
 }
