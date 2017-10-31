@@ -18,6 +18,16 @@
 #include "uart.h"
 #include "engine.h"
 
+enum {
+    CLOSED,
+    OPEN_LID,
+    EYE_OUT,
+    EYE_ROTATE,
+    EYE_IN,
+    CLOSE_LID
+} tampa = CLOSED;
+
+
 void Error_Handler();
 
 static void init_gpio()
@@ -192,6 +202,7 @@ unsigned myrand()
 }
 
 static uint8_t lv=0;
+static uint8_t innertick = 0;
 
 void callback_end_of_led_frame()
 {
@@ -201,6 +212,7 @@ void callback_end_of_led_frame()
     lv++;
     if ((lv & 0x3F) == (0x3F))
     {
+        innertick++;
         main_state_t state = engine_get_state();
         switch (state) {
         case ENGINE_IDLE:
@@ -216,15 +228,34 @@ void callback_end_of_led_frame()
 
             break;
         case ENGINE_APPROACH:
-
-            for (i=0;i<71;i++) {
-                led_setpixel(i,0xff);
+            if (tampa<EYE_IN)
+            {
+                for (i=0;i<71;i++) {
+                    led_setpixel(i, 0);
+                }
+            } else {
+                for (i=0;i<71;i++) {
+                    led_setpixel(i, innertick & 7 == 7 ? 0xff:0xfe);
+                }
             }
 
-            led_setpixel(72, lv);
-            led_setpixel(73, lv);
-            led_setpixel(74, lv);
-            led_setpixel(75, lv);
+            if (tampa<EYE_ROTATE) {
+                led_setpixel(72, 0);
+                led_setpixel(73, 0);
+                led_setpixel(74, 0);
+                led_setpixel(75, 0);
+            } else {
+                uint8_t lc[4];
+                lc[0]= lv;
+                lc[1]= lv+8;
+                lc[2]= lv+16;
+                lc[3]= lv+24;
+
+                led_setpixel(72, lc[0]);
+                led_setpixel(73, lc[1]);
+                led_setpixel(74, lc[2]);
+                led_setpixel(75, lc[3]);
+            }
 
             break;
         }
@@ -274,16 +305,13 @@ static void eye_in()
 //    servo_disable();
 }
 
-enum {
-    CLOSED,
-    OPEN_LID,
-    EYE_OUT,
-    EYE_ROTATE,
-    EYE_IN,
-    CLOSE_LID
-} tampa = CLOSED;
-
 int ttimer = -1;
+
+
+int motors_idle()
+{
+    return tampa==CLOSED;
+}
 
 
 int effect_finished()
@@ -309,7 +337,8 @@ int effect_finished()
         tampa = CLOSED;
         return -1;
         break;
-
+    default:
+        break;
     }
     return 0;
 }
@@ -378,6 +407,8 @@ int get_distance()
     return sensor_proximity() ? 2 : 3;
 }
 
+#define DISTANCE_READ 7
+
 int sensor_ping(void *data)
 {
     if (sensor_tick==0) {
@@ -385,7 +416,7 @@ int sensor_ping(void *data)
         distance_ping();
     }
 
-    if (sensor_tick==8) {
+    if (sensor_tick== DISTANCE_READ) {
         int v = distance_read_echo();
         outstring("V ");
         printhex(v);
@@ -394,10 +425,12 @@ int sensor_ping(void *data)
             if (ones_count<3)
                 ones_count++;
         } else {
-            ones_count=0;
-#if 0
-            if (ones_count>0)
-                ones_count--;
+#if 1
+            if (ones_count>0) {
+                ones_count-=2;
+                if (ones_count<=0)
+                    ones_count=0;
+            }
 #endif
         }
     }
@@ -424,7 +457,9 @@ int motor_ctl(void *data)
 #endif
 int engine_tick()
 {
-    engine_loop();
+    if (motors_idle()) {
+        engine_loop();
+    }
     return 0;
 }
 
