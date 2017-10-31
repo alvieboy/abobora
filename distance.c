@@ -67,6 +67,8 @@ void distance_init()
     GPIO_InitTypeDef init;
 
     DISTANCE_TRIG_GPIO_CLK_ENABLE();
+    
+    DISTANCE_TIM_CHANNEL_GPIO_PORT();
 
     init.Pin = DISTANCE_TRIG_GPIO_PIN;
     init.Mode = GPIO_MODE_OUTPUT_PP;
