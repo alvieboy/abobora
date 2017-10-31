@@ -192,7 +192,7 @@ void distance_echo_interrupt()
     //Stop timer in input capture mode TIM3
     HAL_TIM_IC_Stop(&TimHandle, TIM_CHANNEL_1);
     
-    if(TIM3->SR & TIM_SR_UIF)
+    if(TIM4->SR & TIM_SR_UIF)
     {
         if(TIM3->CNT < DISTANCE_THRESHOLD)
             distance[distance_meas_idx] = TIM3->CNT;
@@ -201,6 +201,6 @@ void distance_echo_interrupt()
             if(distance_meas_idx > DIST_ARRAY_SIZE) 
                 distance_meas_idx = 0;
         
-        TIM3->SR &= ~(TIM_SR_UIF);
+        TIM4->SR &= ~(TIM_SR_UIF);
     }
 }
