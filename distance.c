@@ -60,6 +60,11 @@ void distance_test_init()
 }
 
 
+int distance_read_echo()
+{
+    return HAL_GPIO_ReadPin( DISTANCE_ECHO_GPIO, DISTANCE_ECHO_GPIO_PIN );
+
+}
 void distance_init()
 {
     /*Trigger GPIO init*/
@@ -82,8 +87,8 @@ void distance_init()
     GPIO_InitTypeDef GPIOinit;
 
     GPIOinit.Pin = DISTANCE_ECHO_GPIO_PIN;
-    GPIOinit.Mode = GPIO_MODE_AF_INPUT;
-    GPIOinit.Pull = GPIO_PULLDOWN;
+    GPIOinit.Mode = GPIO_MODE_INPUT;
+    GPIOinit.Pull = GPIO_NOPULL;
     GPIOinit.Speed = GPIO_SPEED_FREQ_HIGH;
 
     HAL_GPIO_Init( DISTANCE_ECHO_GPIO, &GPIOinit );

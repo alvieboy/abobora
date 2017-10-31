@@ -10,12 +10,13 @@
 #include "audio.h"
 #include "led.h"
 #include "distance.h"
-#include "fogo-pallete.h"
+#include "fogo-pallete2.h"
 #include "spi.h"
 #include "spiflash.h"
 #include "timer.h"
 #include "servo.h"
 #include "uart.h"
+#include "engine.h"
 
 void Error_Handler();
 
@@ -33,6 +34,13 @@ static void init_gpio()
     init.Speed = GPIO_SPEED_FREQ_LOW;
 
     HAL_GPIO_Init( GPIOC, &init );
+
+    init.Pin = GPIO_PIN_5 | GPIO_PIN_6;
+    init.Mode = GPIO_MODE_OUTPUT_PP;
+    init.Pull = GPIO_NOPULL;
+    init.Speed = GPIO_SPEED_FREQ_LOW;
+
+    HAL_GPIO_Init( GPIOB, &init );
 
     init.Speed = GPIO_SPEED_FREQ_HIGH;
     init.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
@@ -173,14 +181,55 @@ void usb_init_pins()
   HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
 }
 
+
+unsigned short lfsr = 0xACE1u;
+unsigned bit;
+
+unsigned myrand()
+{
+    bit  = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5) ) & 1;
+    return lfsr =  (lfsr >> 1) | (bit << 15);
+}
+
 static uint8_t lv=0;
+
 void callback_end_of_led_frame()
 {
+    volatile uint8_t r = myrand() & 0xff;
+    int i;
 
-    led_setpixel(72, lv);
-    led_setpixel(73, lv);
-    led_setpixel(74, lv);
-    led_setpixel(75, lv);
+    lv++;
+    if ((lv & 0x3F) == (0x3F))
+    {
+        main_state_t state = engine_get_state();
+        switch (state) {
+        case ENGINE_IDLE:
+        default:
+
+            for (i=0;i<71;i++) {
+                led_setpixel(i,r);
+            }
+            led_setpixel(0, lv);
+            led_setpixel(0, lv);
+            led_setpixel(0, lv);
+            led_setpixel(0, lv);
+
+            break;
+        case ENGINE_APPROACH:
+
+            for (i=0;i<71;i++) {
+                led_setpixel(i,0xff);
+            }
+
+            led_setpixel(72, lv);
+            led_setpixel(73, lv);
+            led_setpixel(74, lv);
+            led_setpixel(75, lv);
+
+            break;
+        }
+    }
+
     lv++;
 
 #if 0
@@ -201,7 +250,6 @@ static void close_lid()
 {
     servo_enable();
     servo_set_channel_a(SERVO_LID_CLOSED);
-    HAL_Delay(2000);
 //    servo_disable();
 }
 
@@ -209,7 +257,6 @@ static void open_lid()
 {
     servo_enable();
     servo_set_channel_a(SERVO_LID_OPEN);
-    HAL_Delay(2000);
 //    servo_disable();
 }
 
@@ -217,7 +264,6 @@ static void eye_out()
 {
     servo_enable();
     servo_set_channel_b(SERVO_EYE_OUT);
-    HAL_Delay(2000);
 //    servo_disable();
 }
 
@@ -225,9 +271,90 @@ static void eye_in()
 {
     servo_enable();
     servo_set_channel_b(SERVO_EYE_IN);
-    HAL_Delay(2000);
 //    servo_disable();
 }
+
+enum {
+    CLOSED,
+    OPEN_LID,
+    EYE_OUT,
+    EYE_ROTATE,
+    EYE_IN,
+    CLOSE_LID
+} tampa = CLOSED;
+
+int ttimer = -1;
+
+
+int effect_finished()
+{
+    switch (tampa) {
+    case OPEN_LID:
+        eye_out();
+        tampa = EYE_OUT;
+        break;
+    case EYE_OUT:
+        rotate_eye();
+        tampa = EYE_ROTATE;
+        break;
+    case EYE_ROTATE:
+        eye_in();
+        tampa = EYE_IN;
+        break;
+    case EYE_IN:
+        close_lid();
+        tampa = CLOSE_LID;
+        break;
+    case CLOSE_LID:
+        tampa = CLOSED;
+        return -1;
+        break;
+
+    }
+    return 0;
+}
+
+
+int motorlr = 0;
+int motorcnt=0;
+int do_rotate_eye(void *data)
+{
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_5, motorlr);
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_6, !motorlr);
+
+    motorlr = ! motorlr;
+    motorcnt++;
+    if (motorcnt<10)
+        return 0;
+
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_5, 0);
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_6, 0);
+    return -1;
+
+}
+
+void rotate_eye()
+{
+    motorcnt=0;
+    ttimer = timer__add(200, &do_rotate_eye, 0);
+
+}
+
+void effect()
+{
+    switch(tampa) {
+    case CLOSED:
+        tampa = OPEN_LID;
+        ttimer = timer__add(2000, &effect_finished, 0);
+        open_lid();
+        break;
+    default:
+        break;
+
+    }
+}
+
+
 
 static uint8_t ledv=0;
 
@@ -238,18 +365,66 @@ int led_toggle(void *data)
     return 0;
 }
 
+static unsigned int sensor_tick = 0;
+int ones_count = 0;
+
+int sensor_proximity()
+{
+    return ones_count==0;
+}
+
+int get_distance()
+{
+    return sensor_proximity() ? 2 : 3;
+}
+
 int sensor_ping(void *data)
 {
-    uint32_t d=0, c=0;
-//    distance_read(&d,&c);
-    outstring("D ");
-    printhex(d);
-    outstring(" ");
-    printhex((unsigned)c);
-    outstring("\r\n");
+    if (sensor_tick==0) {
+        // ping
+        distance_ping();
+    }
 
-    distance_ping();
+    if (sensor_tick==8) {
+        int v = distance_read_echo();
+        outstring("V ");
+        printhex(v);
+        outstring("\r\n");
+        if (v==1) {
+            if (ones_count<3)
+                ones_count++;
+        } else {
+            ones_count=0;
+#if 0
+            if (ones_count>0)
+                ones_count--;
+#endif
+        }
+    }
+
+    sensor_tick++;
+    if (sensor_tick==100)
+        sensor_tick = 0;
+
+
     //outstring("\xff");
+    return 0;
+}
+
+#if 0
+int motorlr = 0;
+int motor_ctl(void *data)
+{
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_5, motorlr);
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_6, !motorlr);
+
+    motorlr = ! motorlr;
+    return 0;
+}
+#endif
+int engine_tick()
+{
+    engine_loop();
     return 0;
 }
 
@@ -268,6 +443,7 @@ int main()
     spi_init();
     spiflash_init();
     distance_init();
+    engine_init();
     //usb_init();
 
     // SPI test
@@ -323,8 +499,9 @@ int main()
     HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 1);
 
     timer__init();
-    timer__add(200, &sensor_ping, NULL);
+    timer__add(1, &sensor_ping, NULL);
     timer__add(100, &led_toggle, NULL);
+    timer__add(500, &engine_tick, NULL);
 
 
     volatile int z = 0;
