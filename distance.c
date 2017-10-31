@@ -104,7 +104,7 @@ void distance_init()
     //HAL_TIM_ConfigTI1Input(TIM_HandleTypeDef * htim, uint32_t TI1_Selection)
 
     HAL_TIM_IC_Init(&TimHandle);
-    HAL_TIM_IC_ConfigChannel(&TimHandle, &ICHandle,TIM_CHANNEL_1);  // => PA6
+    HAL_TIM_IC_ConfigChannel(&TimHandle, &ICHandle,TIM_CHANNEL_2);  // => PA6
     
     __enable_irq();
 
@@ -135,7 +135,7 @@ void distance_ping()
     HAL_GPIO_WritePin( DISTANCE_TRIG_GPIO, DISTANCE_TRIG_GPIO_PIN, 1);
 
     //Start timer in input capture mode
-    HAL_TIM_IC_Start(&TimHandle, TIM_CHANNEL_1);
+    HAL_TIM_IC_Start(&TimHandle, TIM_CHANNEL_2);
     
     distance_delay();
     HAL_GPIO_WritePin( DISTANCE_TRIG_GPIO, DISTANCE_TRIG_GPIO_PIN, 0);
@@ -168,19 +168,19 @@ int distance_read(uint32_t *value, uint8_t *closeness)
     {
         *closeness = DISTANCE_CLOSE;
 #ifdef DIST_TEST
-        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 1);
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_13, 1);
 #endif
     }else if(*value < 200)
     {
         *closeness = DISTANCE_FAR;
 #ifdef DIST_TEST
-        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 1);
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_14, 1);
 #endif
     }else
     {
         *closeness = DISTANCE_NODETECTION;
 #ifdef DIST_TEST
-        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 1);
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_15, 1);
 #endif
     }
         
@@ -192,7 +192,7 @@ uint8_t distance_meas_idx = 0;
 void distance_echo_interrupt()
 {
     //Stop timer in input capture mode TIM3
-    HAL_TIM_IC_Stop(&TimHandle, TIM_CHANNEL_1);
+    HAL_TIM_IC_Stop(&TimHandle, TIM_CHANNEL_2);
     
     if(DISTANCE_TIM->SR & TIM_SR_UIF)
     {
