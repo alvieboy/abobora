@@ -188,7 +188,7 @@ g_pfnVectors:
   .word TIM1_CC_IRQHandler
   .word TIM2_IRQHandler
   .word TIM3_IRQHandler
-  .word 0
+  .word TIM4_IRQHandler
   .word I2C1_EV_IRQHandler
   .word I2C1_ER_IRQHandler
   .word 0
@@ -335,6 +335,9 @@ g_pfnVectors:
 
   .weak TIM3_IRQHandler
   .thumb_set TIM3_IRQHandler,Default_Handler
+  
+  .weak TIM4_IRQHandler
+  .thumb_set TIM4_IRQHandler,Default_Handler
 
   .weak I2C1_EV_IRQHandler
   .thumb_set I2C1_EV_IRQHandler,Default_Handler
