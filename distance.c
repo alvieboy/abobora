@@ -101,6 +101,11 @@ void distance_init()
 
     HAL_TIM_IC_Init(&TimHandle);
     HAL_TIM_IC_ConfigChannel(&TimHandle, &ICHandle,TIM_CHANNEL_1);  // => PA6
+    
+    __enable_irq();
+
+    HAL_NVIC_SetPriority(DISTANCE_TIM_IRQ, 27, 0);
+    NVIC_EnableIRQ( DISTANCE_TIM_IRQ );
 
     return;
 }
@@ -140,31 +145,38 @@ int distance_read(uint32_t *value, uint8_t *closeness)
     for(i = 0 ;i < DIST_ARRAY_SIZE; i++)
         dist += distance[i];
         
-    *value = (uint32_t)(((float)dist/(float)DIST_ARRAY_SIZE)*METERS_PER_TICK*0.5);
+    *value = dist;//(uint32_t)(((float)dist/(float)DIST_ARRAY_SIZE)*METERS_PER_TICK*0.5*100);
+    
+#ifdef DIST_TEST
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_13, 0);
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_14, 0);
+    HAL_GPIO_WritePin( GPIOB, GPIO_PIN_15, 0);
+#endif
 
-    if(*value < 0.5)
+    if(*value > 0 && *value < 50)
     {
         *closeness = DISTANCE_UPCLOSE;
 #ifdef DIST_TEST
-        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 1);
 #endif
-    }else if(*value < 1.0)
+    }else if(*value < 100)
     {
         *closeness = DISTANCE_CLOSE;
 #ifdef DIST_TEST
-        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 1);
 #endif
-    }else if(*value < 2.0)
+    }else if(*value < 200)
     {
         *closeness = DISTANCE_FAR;
 #ifdef DIST_TEST
-        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 1);
 #endif
     }else
     {
         *closeness = DISTANCE_NODETECTION;
 #ifdef DIST_TEST
-        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 0);
+        HAL_GPIO_WritePin( GPIOB, GPIO_PIN_12, 1);
 #endif
     }
         
